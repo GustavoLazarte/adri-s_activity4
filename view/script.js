@@ -61,9 +61,9 @@ const testEdges = [
     { from: "Ucureña", to: "Tarata", cost: 10 },
     { from: "San Benito", to: "Tolata", cost: 12 },
     { from: "San Benito", to: "Tarata", cost: 23 },
+    { from: "Tarata", to: "San Antonio de Tiraque", cost: 30 },
     { from: "Tolata", to: "San Antonio de Tiraque", cost: 18 },
-    { from: "Arbieto", to: "San Antonio de Tiraque", cost: 22 },
-    { from: "Arbieto", to: "San Antonio de Tiraque", cost: 30 }
+    { from: "Arbieto", to: "San Antonio de Tiraque", cost: 22 }
 ];
 
 

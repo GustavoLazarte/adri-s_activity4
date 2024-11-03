@@ -1,9 +1,9 @@
 import java.util.List;
-import java.util.Map;
 
 public class main {
     public static void main(String[] args) {
-        Grafo grafo = new Grafo();
+        Grafo_Vista grafo = new Grafo_Vista();
+        grafo.inicializarUI();
 
         // Crear nodos
         grafo.agregarNodo("Anzaldo");
@@ -36,30 +36,9 @@ public class main {
         grafo.agregarArista("San Benito", "Tarata", 23);
         grafo.agregarArista("Tolata", "San Antonio de Tiraque", 18);
         grafo.agregarArista("Arbieto", "San Antonio de Tiraque", 22);
-        grafo.agregarArista("Arbieto", "San Antonio de Tiraque", 30);
-
-
-        List<Nodo> resultadoMax = grafo.maximizarValor("Anzaldo", "San Antonio de Tiraque");
-        List<Nodo> resultadoMin = grafo.minimizarCosto("Anzaldo", "San Antonio de Tiraque");
-
-        // Mostrar resultados de maximización
-        System.out.print("Ruta con máximo valor de Anzaldo a San Antonio de Tiraque: ");
-        for (int i = 0; i < resultadoMax.size(); i++) {
-            System.out.print(resultadoMax.get(i).nombre);
-            if (i < resultadoMax.size() - 1) {
-                System.out.print(" -> ");
-            }
-        }
-        System.out.println();
-
-        // Mostrar resultados de minimización
-        System.out.print("Ruta con mínimo coste de Anzaldo a San Antonio de Tiraque: ");
-        for (int i = 0; i < resultadoMin.size(); i++) {
-            System.out.print(resultadoMin.get(i).nombre);
-            if (i < resultadoMin.size() - 1) {
-                System.out.print(" -> ");
-            }
-        }
+        grafo.agregarArista("Tarata", "San Antonio de Tiraque", 30);
+        grafo.organizarGrafo();
+        grafo.imprimirAristas();
         System.out.println();
     }
 }
