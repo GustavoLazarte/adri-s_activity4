@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualización de Grafo</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/vis-network@9.1.0/dist/vis-network.min.js"></script>
+</head>
+<body>
+<div id="graphContainer" style="width: 1400px; height: 600px;"></div>
+<div id="controls">
+    <h2>Agregar Nodo</h2>
+    <input type="text" id="nodeName" placeholder="Nombre del Nodo">
+    <button id="addNodeBtn">Agregar Nodo</button>
+
+    <h2>Agregar Arista</h2>
+    <input type="text" id="fromNode" placeholder="Desde Nodo">
+    <input type="text" id="toNode" placeholder="Hasta Nodo">
+    <input type="number" id="edgeCost" placeholder="Costo de Arista">
+    <button id="addEdgeBtn">Agregar Arista</button>
+
+    <h2>Buscar Caminos</h2>
+    <input type="text" id="startNode" placeholder="Nodo Inicial">
+    <input type="text" id="endNode" placeholder="Nodo Final">
+    <button id="maximizeBtn">Maximizar Valor</button>
+    <button id="minimizeBtn">Minimizar Costo</button>
+</div>
+<script type="module" src="script.js"></script> <!-- Invocando script.js -->
+</body>
+</html>
