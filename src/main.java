@@ -38,7 +38,6 @@ public class main {
         grafo.agregarArista("Arbieto", "San Antonio de Tiraque", 22);
         grafo.agregarArista("Tarata", "San Antonio de Tiraque", 30);
         grafo.organizarGrafo();
-        grafo.imprimirAristas();
         System.out.println();
     }
 }

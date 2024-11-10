@@ -139,32 +139,40 @@ public class Grafo_Vista extends Grafo {
         JOptionPane.showMessageDialog(frame, sb.toString());
 
         // Cambiar el color de las aristas en la ruta
-        cambiarColorAristasRuta(ruta, "red"); // Cambia "red" al color que desees
+        cambiarColorAristasRuta(ruta, Color.RED); // Cambia "red" al color que desees
     }
 
-    private void cambiarColorAristasRuta(List<Nodo> ruta, String color) {
+    private void cambiarColorAristasRuta(List<Nodo> mejorRuta, Color color) {
         graph.getModel().beginUpdate();
         try {
-            for (int i = 0; i < ruta.size() - 1; i++) {
-                String origen = ruta.get(i).nombre;
-                String destino = ruta.get(i + 1).nombre;
+            for (int i = 0; i < mejorRuta.size() - 1; i++) {
+                String origen = mejorRuta.get(i).nombre;
+                String destino = mejorRuta.get(i + 1).nombre;
                 Object origenVisual = nodosVisuales.get(origen);
                 Object destinoVisual = nodosVisuales.get(destino);
 
-                // Obtener las aristas desde el nodo de origen
                 Object[] edges = graph.getEdges(origenVisual);
                 boolean edgeFound = false;
-
                 for (Object edge : edges) {
-                    // Usar getTerminal para verificar los terminales
-                    if (graph.getTerminalForPort(edge, true) == origenVisual && graph.getTerminalForPort(edge, false) == destinoVisual) {
-                        // Cambiar el estilo de la arista
-                        graph.getModel().setStyle(edge, "strokeColor=" + color);
+                    Object tfo = graph.getModel().getTerminal(edge, true);
+                    Object tff = graph.getModel().getTerminal(edge, false);
+                    if (tfo == origenVisual && tff == destinoVisual) {
+                        // Convertir el color a formato hexadecimal
+                        String hexColor = String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
+
+                        // Obtener el estilo actual de la arista
+                        String currentStyle = graph.getModel().getStyle(edge);
+
+                        // Cambiar solo el color del borde, manteniendo el resto del estilo
+                        String newStyle = currentStyle + ";strokeColor=" + hexColor;
+
+                        // Aplicar el nuevo estilo
+                        graph.setCellStyle(newStyle, new Object[]{edge});
+
                         edgeFound = true;
                         break; // Salir del bucle una vez que se encontró la arista
                     }
                 }
-
                 if (!edgeFound) {
                     System.out.println("No se encontró la arista de " + origen + " a " + destino);
                 }
@@ -175,9 +183,9 @@ public class Grafo_Vista extends Grafo {
     }
 
 
-
     public void organizarGrafo() {
         mxCompactTreeLayout layout = new mxCompactTreeLayout(graph);
+        layout.setHorizontal(false);
         graph.getModel().beginUpdate();
         try {
             layout.execute(parent);
@@ -213,7 +221,6 @@ public class Grafo_Vista extends Grafo {
             graph.getModel().beginUpdate();
             try {
                 graph.insertEdge(parent, null, coste, origenVisual, destinoVisual);
-                System.out.println("Arista agregada de " + origen + " a " + destino + " con coste " + coste);
             } finally {
                 graph.getModel().endUpdate();
             }
@@ -223,16 +230,6 @@ public class Grafo_Vista extends Grafo {
     }
 
 
-    public void imprimirAristas() {
-        Object[] edges = graph.getEdges(parent);
-        System.out.println("Aristas en el grafo:");
-        for (Object edge : edges) {
-            Object source = graph.getTerminalForPort(edge, true);
-            Object target = graph.getTerminalForPort(edge, false);
-            String sourceName = (String) graph.getModel().getValue(source);
-            String targetName = (String) graph.getModel().getValue(target);
-            System.out.println("Arista desde " + sourceName + " a " + targetName);
-        }
-    }
+
 
 }
