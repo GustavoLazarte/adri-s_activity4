@@ -1,5 +1,6 @@
 import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
 import com.mxgraph.layout.mxCompactTreeLayout;
+import com.mxgraph.model.mxICell;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.view.mxGraph;
 
@@ -90,6 +91,7 @@ public class Grafo_Vista extends Grafo {
         JTextField maximizarHastaField = new JTextField(10);
         JButton maximizarBtn = new JButton("Maximizar Ruta");
         maximizarBtn.addActionListener(e -> {
+            resetearStyleAristas();
             String desde = maximizarDesdeField.getText();
             String hasta = maximizarHastaField.getText();
             List<Nodo> rutaMax = maximizarValor(desde, hasta);
@@ -102,6 +104,7 @@ public class Grafo_Vista extends Grafo {
         maximizarPanel.add(maximizarBtn);
         controlPanel.add(maximizarPanel);
 
+
         // Campos para minimizar ruta
         JPanel minimizarPanel = new JPanel();
         minimizarPanel.setLayout(new FlowLayout());
@@ -109,6 +112,7 @@ public class Grafo_Vista extends Grafo {
         JTextField minimizarHastaField = new JTextField(10);
         JButton minimizarBtn = new JButton("Minimizar Ruta");
         minimizarBtn.addActionListener(e -> {
+            resetearStyleAristas();
             String desde = minimizarDesdeField.getText();
             String hasta = minimizarHastaField.getText();
             List<Nodo> rutaMin = minimizarCosto(desde, hasta);
@@ -121,9 +125,29 @@ public class Grafo_Vista extends Grafo {
         minimizarPanel.add(minimizarBtn);
         controlPanel.add(minimizarPanel);
 
+        // Agregar un panel para bloquear rutas
+        JPanel bloquearPanel = new JPanel();
+        bloquearPanel.setLayout(new FlowLayout());
+        JTextField bloquearDesdeField = new JTextField(10);
+        JTextField bloquearHastaField = new JTextField(10);
+        JButton bloquearBtn = new JButton("Bloquear Ruta");
+        bloquearBtn.addActionListener(e -> {
+            String desde = bloquearDesdeField.getText();
+            String hasta = bloquearHastaField.getText();
+            Object edge = bloquearRuta(desde, hasta); // Bloquear la ruta en la estructura de datos
+            actualizarAristaVista(edge); // Actualizar visualmente el grafo
+        });
+        bloquearPanel.add(new JLabel("Desde:"));
+        bloquearPanel.add(bloquearDesdeField);
+        bloquearPanel.add(new JLabel("Hasta:"));
+        bloquearPanel.add(bloquearHastaField);
+        bloquearPanel.add(bloquearBtn);
+        controlPanel.add(bloquearPanel);
+
         frame.add(controlPanel, BorderLayout.SOUTH);
         frame.setSize(800, 600);
         frame.setVisible(true);
+
     }
 
     // Método para mostrar la ruta en un cuadro de diálogo
@@ -141,7 +165,15 @@ public class Grafo_Vista extends Grafo {
         // Cambiar el color de las aristas en la ruta
         cambiarColorAristasRuta(ruta, Color.RED); // Cambia "red" al color que desees
     }
-
+    public void mostrarGrafo() {
+        for (Nodo nodo : nodos.values()) {
+            System.out.print("Nodo " + nodo.nombre + " tiene conexiones a: ");
+            for (Arista arista : nodo.conexiones) {
+                System.out.print(arista.destino.nombre + " (coste " + arista.coste + "), ");
+            }
+            System.out.println();
+        }
+    }
     private void cambiarColorAristasRuta(List<Nodo> mejorRuta, Color color) {
         graph.getModel().beginUpdate();
         try {
@@ -156,7 +188,7 @@ public class Grafo_Vista extends Grafo {
                 for (Object edge : edges) {
                     Object tfo = graph.getModel().getTerminal(edge, true);
                     Object tff = graph.getModel().getTerminal(edge, false);
-                    if (tfo == origenVisual && tff == destinoVisual) {
+                    if ((tfo == origenVisual && tff == destinoVisual) || (tfo == destinoVisual && tff == origenVisual)) {
                         // Convertir el color a formato hexadecimal
                         String hexColor = String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
 
@@ -215,12 +247,22 @@ public class Grafo_Vista extends Grafo {
     // Método para agregar arista visualmente y en la estructura de datos
     public void agregarArista(String origen, String destino, int coste) {
         if (nodos.containsKey(origen) && nodos.containsKey(destino)) {
-            super.agregarArista(origen, destino, coste); // Llamar al método de la superclase
+            // Agregar aristas bidireccionales en la estructura de datos lógica
+
             Object origenVisual = nodosVisuales.get(origen);
             Object destinoVisual = nodosVisuales.get(destino);
             graph.getModel().beginUpdate();
             try {
-                graph.insertEdge(parent, null, coste, origenVisual, destinoVisual);
+                // Define un estilo sin flechas
+                String estilo = "endArrow=none;startArrow=none;";
+                Object edge = graph.insertEdge(parent, null, coste, origenVisual, destinoVisual);
+                if (coste == -1) {
+                    // Cambiar el color a rojo si el valor es -1
+                    graph.setCellStyle("endArrow=none;startArrow=none;strokeColor=#800080", new Object[]{edge});
+                }else{
+                    graph.setCellStyle(estilo, new Object[]{edge});
+                }
+                super.agregarArista(origen, destino, coste, edge); // De origen a destino
             } finally {
                 graph.getModel().endUpdate();
             }
@@ -229,7 +271,46 @@ public class Grafo_Vista extends Grafo {
         }
     }
 
+    private void actualizarAristaVista(Object edge) {
+        graph.getModel().beginUpdate();
+        try {
+            graph.getModel().setValue(edge, -1);
+            graph.setCellStyle("endArrow=none;startArrow=none;strokeColor=#800080", new Object[]{edge});
+        } finally {
+            graph.getModel().endUpdate();
+        }
+    }
 
+    public void resetearStyleAristas(){
+        graph.getModel().beginUpdate();
+        try {
+            // Definir el nuevo color (por ejemplo, azul)
+            String edgeStyle = "endArrow=none;startArrow=none;noEdgeStyle=1"; // Código hexadecimal para azul
+
+            // Obtener todos los vértices en el grafo
+            Object[] vertices = graph.getChildVertices(parent);
+
+            // Iterar sobre cada vértice y obtener sus aristas
+            for (Object vertex : vertices) {
+                Object[] edges = graph.getEdges(vertex);
+
+                for (Object e : edges) {
+                    Object edgeValue = graph.getModel().getValue(e);
+
+                    if (edgeValue != null && edgeValue.toString().equals("-1")) {
+                        // Cambiar el color a rojo si el valor es -1
+                        graph.setCellStyle("endArrow=none;startArrow=none;strokeColor=#800080", new Object[]{e});
+                    }else{
+                        graph.setCellStyle(edgeStyle, new Object[]{e});
+                    }
+
+                }
+            }
+        } finally {
+            // Terminar la edición del grafo
+            graph.getModel().endUpdate();
+        }
+    }
 
 
 }
