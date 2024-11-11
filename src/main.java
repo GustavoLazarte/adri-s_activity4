@@ -28,7 +28,7 @@ public class main {
         grafo.agregarArista("Cliza", "Arbieto", 20);
         grafo.agregarArista("Punata", "San Benito", 14);
         grafo.agregarArista("Punata", "Ucureña", 13);
-        grafo.agregarArista("Ucureña", "San Benito", 25);
+        grafo.agregarArista("Ucureña", "San Benito", -1);
         grafo.agregarArista("Ucureña", "Tolata", 5);
         grafo.agregarArista("Ucureña", "Arbieto", 27);
         grafo.agregarArista("Ucureña", "Tarata", 10);
