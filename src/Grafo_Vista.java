@@ -94,7 +94,7 @@ public class Grafo_Vista extends Grafo {
             resetearStyleAristas();
             String desde = maximizarDesdeField.getText();
             String hasta = maximizarHastaField.getText();
-            List<Nodo> rutaMax = maximizarValor(desde, hasta);
+            List<Nodo> rutaMax = maximizarValorBacktracking(desde, hasta);
             mostrarRuta("Máximo Valor", rutaMax);
         });
         maximizarPanel.add(new JLabel("Desde:"));
@@ -115,7 +115,7 @@ public class Grafo_Vista extends Grafo {
             resetearStyleAristas();
             String desde = minimizarDesdeField.getText();
             String hasta = minimizarHastaField.getText();
-            List<Nodo> rutaMin = minimizarCosto(desde, hasta);
+            List<Nodo> rutaMin = minimizarValorBacktracking(desde, hasta);
             mostrarRuta("Mínimo Costo", rutaMin);
         });
         minimizarPanel.add(new JLabel("Desde:"));

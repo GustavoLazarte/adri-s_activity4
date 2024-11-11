@@ -7,99 +7,98 @@ public class Grafo {
         nodos.putIfAbsent(nombre, new Nodo(nombre));
     }
 
-    public void agregarArista(String origen, String destino, int coste, Object edgeView) {
+    public void agregarArista(String origen, String destino, int coste, Object view) {
         Nodo nodoOrigen = nodos.get(origen);
         Nodo nodoDestino = nodos.get(destino);
         if (nodoOrigen != null && nodoDestino != null) {
-            // Arista de origen a destino
-            nodoOrigen.conexiones.add(new Arista(nodoDestino, coste,edgeView));
-
-            // Arista de destino a origen (bidireccional)
-            nodoDestino.conexiones.add(new Arista(nodoOrigen, coste,edgeView));
+            nodoOrigen.conexiones.add(new Arista(nodoDestino, coste, view));
         }
     }
 
-
-    public List<Nodo> maximizarValor(String inicio, String destinoFinal) {
+    public List<Nodo> minimizarValorBacktracking(String inicio, String destinoFinal) {
         Nodo nodoInicio = nodos.get(inicio);
-        Map<Nodo, Integer> valor = new HashMap<>();
-        Map<Nodo, Nodo> camino = new HashMap<>();
-        PriorityQueue<Nodo> queue = new PriorityQueue<>((a, b) -> valor.get(b) - valor.get(a));
-        Set<Nodo> visitados = new HashSet<>();  // Para evitar ciclos
-
-        valor.put(nodoInicio, 0);
-        queue.add(nodoInicio);
-        visitados.add(nodoInicio);  // Marcamos el nodo inicio como visitado
-
-        while (!queue.isEmpty()) {
-            Nodo nodoActual = queue.poll();
-
-            for (Arista arista : nodoActual.conexiones) {
-                if (arista.coste == -1) {
-                    continue;
-                }
-
-                // Si el nodo destino ya ha sido visitado, saltamos esta arista
-                if (visitados.contains(arista.destino)) {
-                    continue;
-                }
-
-                int nuevoValor = valor.get(nodoActual) + arista.coste;
-
-                if (nuevoValor > valor.getOrDefault(arista.destino, 0)) {
-                    valor.put(arista.destino, nuevoValor);
-                    camino.put(arista.destino, nodoActual);
-                    queue.add(arista.destino);
-                    visitados.add(arista.destino);  // Marcamos como visitado el nodo destino
-                }
-            }
-        }
-
-        return reconstruirCamino(camino, destinoFinal);
-    }
-
-
-    public List<Nodo> minimizarCosto(String inicio, String destinoFinal) {
-        Nodo nodoInicio = nodos.get(inicio);
-        Map<Nodo, Integer> costo = new HashMap<>();
-        Map<Nodo, Nodo> camino = new HashMap<>();
-        PriorityQueue<Nodo> queue = new PriorityQueue<>(Comparator.comparingInt(costo::get));
-
-        costo.put(nodoInicio, 0);
-        queue.add(nodoInicio);
-
-        while (!queue.isEmpty()) {
-            Nodo nodoActual = queue.poll();
-
-            for (Arista arista : nodoActual.conexiones) {
-                if (arista.coste == -1) {
-                    continue;
-                }
-
-                int nuevoCosto = costo.get(nodoActual) + arista.coste;
-
-                if (nuevoCosto < costo.getOrDefault(arista.destino, Integer.MAX_VALUE)) {
-                    costo.put(arista.destino, nuevoCosto);
-                    camino.put(arista.destino, nodoActual);
-                    queue.add(arista.destino);
-                }
-            }
-        }
-
-        return reconstruirCamino(camino, destinoFinal);
-    }
-
-    private List<Nodo> reconstruirCamino(Map<Nodo, Nodo> camino, String destinoFinal) {
+        Nodo nodoDestino = nodos.get(destinoFinal);
         List<Nodo> mejorCamino = new ArrayList<>();
-        Nodo nodoActual = nodos.get(destinoFinal);
-        if (nodoActual != null && camino.containsKey(nodoActual)) {
-            while (nodoActual != null) {
-                mejorCamino.add(nodoActual);
-                nodoActual = camino.get(nodoActual);
-            }
-            Collections.reverse(mejorCamino); // Invertir para obtener el camino correcto
-        }
+        List<Nodo> caminoActual = new ArrayList<>();
+        Set<Nodo> visitados = new HashSet<>();
+        int[] minValor = {Integer.MAX_VALUE}; // Usamos un valor muy alto para el mínimo
+
+        backtrackMin(nodoInicio, nodoDestino, 0, minValor, caminoActual, mejorCamino, visitados);
         return mejorCamino;
+    }
+
+    private void backtrackMin(Nodo nodoActual, Nodo nodoDestino, int valorActual, int[] minValor,
+                              List<Nodo> caminoActual, List<Nodo> mejorCamino, Set<Nodo> visitados) {
+        // Añadir el nodo actual al camino y marcarlo como visitado
+        caminoActual.add(nodoActual);
+        visitados.add(nodoActual);
+
+        // Si alcanzamos el destino, actualizamos el mejor camino si es el valor mínimo
+        if (nodoActual.equals(nodoDestino)) {
+            if (valorActual < minValor[0]) {
+                minValor[0] = valorActual;
+                mejorCamino.clear();
+                mejorCamino.addAll(new ArrayList<>(caminoActual));
+            }
+        } else {
+            // Explorar cada arista del nodo actual
+            for (Arista arista : nodoActual.conexiones) {
+                Nodo vecino = arista.destino;
+                int costeArista = arista.coste;
+
+                // Continuar solo si la arista es válida y el nodo vecino no está visitado
+                if (costeArista != -1 && !visitados.contains(vecino)) {
+                    backtrackMin(vecino, nodoDestino, valorActual + costeArista, minValor, caminoActual, mejorCamino, visitados);
+                }
+            }
+        }
+
+        // Retroceder: desmarcar el nodo actual y eliminarlo del camino
+        visitados.remove(nodoActual);
+        caminoActual.remove(caminoActual.size() - 1);
+    }
+
+    public List<Nodo> maximizarValorBacktracking(String inicio, String destinoFinal) {
+        Nodo nodoInicio = nodos.get(inicio);
+        Nodo nodoDestino = nodos.get(destinoFinal);
+        List<Nodo> mejorCamino = new ArrayList<>();
+        List<Nodo> caminoActual = new ArrayList<>();
+        Set<Nodo> visitados = new HashSet<>();
+        int[] maxValor = {0}; // Usamos un array para almacenar el valor máximo y que sea mutable
+
+        backtrack(nodoInicio, nodoDestino, 0, maxValor, caminoActual, mejorCamino, visitados);
+        return mejorCamino;
+    }
+
+    private void backtrack(Nodo nodoActual, Nodo nodoDestino, int valorActual, int[] maxValor,
+                           List<Nodo> caminoActual, List<Nodo> mejorCamino, Set<Nodo> visitados) {
+        // Añadir el nodo actual al camino y marcarlo como visitado
+        caminoActual.add(nodoActual);
+        visitados.add(nodoActual);
+
+        // Si alcanzamos el destino, actualizamos el mejor camino si es el valor máximo
+        if (nodoActual.equals(nodoDestino)) {
+            if (valorActual > maxValor[0]) {
+                maxValor[0] = valorActual;
+                mejorCamino.clear();
+                mejorCamino.addAll(new ArrayList<>(caminoActual));
+            }
+        } else {
+            // Explorar cada arista del nodo actual
+            for (Arista arista : nodoActual.conexiones) {
+                Nodo vecino = arista.destino;
+                int costeArista = arista.coste;
+
+                // Continuar solo si la arista es válida y el nodo vecino no está visitado
+                if (costeArista != -1 && !visitados.contains(vecino)) {
+                    backtrack(vecino, nodoDestino, valorActual + costeArista, maxValor, caminoActual, mejorCamino, visitados);
+                }
+            }
+        }
+
+        // Retroceder: desmarcar el nodo actual y eliminarlo del camino
+        visitados.remove(nodoActual);
+        caminoActual.remove(caminoActual.size() - 1);
     }
 
     public Object bloquearRuta(String origen, String destino) {
@@ -108,15 +107,6 @@ public class Grafo {
             // Buscar las aristas entre origen y destino
             for (Arista arista : nodos.get(origen).conexiones) {
                 if (arista.destino.nombre.equals(destino)) {
-                    // Cambiar el coste de la arista a -1 para bloquearla
-                    arista.coste = -1; // Bloqueada
-                    break;
-                }
-            }
-
-            // También bloquear la ruta en la dirección contraria
-            for (Arista arista : nodos.get(destino).conexiones) {
-                if (arista.destino.nombre.equals(origen)) {
                     // Cambiar el coste de la arista a -1 para bloquearla
                     arista.coste = -1; // Bloqueada
                     target = arista.view;
@@ -129,5 +119,4 @@ public class Grafo {
 
         return target;
     }
-
 }
